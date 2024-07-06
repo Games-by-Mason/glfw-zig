@@ -4,8 +4,8 @@
     .dependencies = .{
         // Mirror available: https://github.com/Games-by-Mason/glfw
         .glfw = .{
-            .url = "https://github.com/glfw/glfw/archive/refs/tags/3.4.tar.gz",
-            .hash = "1220c46ebcac607065f942193b82a21b87213fca4b0d50c83461f8f5e22955fcb88f",
+            .url = "https://github.com/Games-by-Mason/glfw/archive/refs/heads/fix-out-of-bounds-joystick-read.tar.gz",
+            .hash = "1220da26c67f44f1093d9f48fe65762d9466f1767cf9d4637a9bb3a5e31f074e3398",
         },
         // This version must be kept in sync with `wayland_version` in build.zig.
         .wayland = .{
