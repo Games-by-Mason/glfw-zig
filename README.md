@@ -4,7 +4,7 @@ GLFW ported to the Zig build system.
 
 Contributions or bug reports are welcome if behavior differs from official build system.
 
-A notable addition to the official options is `provide_headers`, which fetches all windowing headers not already provided by Zig from the official sources, enabling cross compilation. macOS frameworks are not provided.
+A notable addition to the official options is `provide_headers`, which fetches all windowing headers not already provided by Zig from the official sources, enabling cross compilation. macOS frameworks are not provided. This option defaults to true.
 
 ## Version
 

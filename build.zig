@@ -75,18 +75,22 @@ pub fn build(b: *std.Build) !void {
     const provide_headers = b.option(
         bool,
         "provide-headers",
-        "Provides headers necessary for cross compilation",
-    ) orelse false;
+        "Provides headers necessary for cross compilation. Defaults to true.",
+    ) orelse true;
 
     const glfw_upstream = b.dependency("glfw", .{});
 
-    const glfw_info = .{
+    const glfw = if (shared) b.addSharedLibrary(.{
         .name = "glfw3",
         .target = target,
         .optimize = optimize,
         .link_libc = true,
-    };
-    const glfw = if (shared) b.addSharedLibrary(glfw_info) else b.addStaticLibrary(glfw_info);
+    }) else b.addStaticLibrary(.{
+        .name = "glfw3",
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
 
     if (glfw.linkage == .dynamic) glfw.root_module.addCMacro("_GLFW_BUILD_DLL", "1");
 
