@@ -2,7 +2,7 @@
     .name = .glfw,
     .fingerprint = 0x3bbe0a5cf320836b,
     .version = "3.4.0",
-    .minimum_zig_version = "0.14.0",
+    .minimum_zig_version = "0.15.1",
     .dependencies = .{
         // Mirror available: https://github.com/Games-by-Mason/glfw
         .glfw = .{
