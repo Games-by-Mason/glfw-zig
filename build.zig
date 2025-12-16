@@ -80,36 +80,30 @@ pub fn build(b: *std.Build) !void {
 
     const glfw_upstream = b.dependency("glfw", .{});
 
-    const glfw = if (shared) b.addSharedLibrary(.{
-        .name = "glfw3",
-        .target = target,
-        .optimize = optimize,
-        .link_libc = true,
-    }) else b.addStaticLibrary(.{
-        .name = "glfw3",
+    const glfw_mod = b.addModule("glfw", .{
         .target = target,
         .optimize = optimize,
         .link_libc = true,
     });
 
-    if (glfw.linkage == .dynamic) glfw.root_module.addCMacro("_GLFW_BUILD_DLL", "1");
+    if (shared) glfw_mod.addCMacro("_GLFW_BUILD_DLL", "1");
 
-    if (build_win32) glfw.root_module.addCMacro("_GLFW_WIN32", "1");
-    if (build_cocoa) glfw.root_module.addCMacro("_GLFW_COCOA", "1");
-    if (build_x11) glfw.root_module.addCMacro("_GLFW_X11", "1");
-    if (build_wayland) glfw.root_module.addCMacro("_GLFW_WAYLAND", "1");
+    if (build_win32) glfw_mod.addCMacro("_GLFW_WIN32", "1");
+    if (build_cocoa) glfw_mod.addCMacro("_GLFW_COCOA", "1");
+    if (build_x11) glfw_mod.addCMacro("_GLFW_X11", "1");
+    if (build_wayland) glfw_mod.addCMacro("_GLFW_WAYLAND", "1");
 
-    if (vulkan_library) |value| glfw.root_module.addCMacro("_GLFW_VULKAN_LIBRARY", value);
-    if (egl_library) |value| glfw.root_module.addCMacro("_GLFW_EGL_LIBRARY", value);
-    if (glx_library) |value| glfw.root_module.addCMacro("_GLFW_GLX_LIBRARY", value);
-    if (osmesa_library) |value| glfw.root_module.addCMacro("_GLFW_OSMESA_LIBRARY", value);
-    if (opengl_library) |value| glfw.root_module.addCMacro("_GLFW_OPENGL_LIBRARY", value);
-    if (glesv1_library) |value| glfw.root_module.addCMacro("_GLFW_GLESV1_LIBRARY", value);
-    if (glesv2_library) |value| glfw.root_module.addCMacro("_GLFW_GLESV2_LIBRARY", value);
+    if (vulkan_library) |value| glfw_mod.addCMacro("_GLFW_VULKAN_LIBRARY", value);
+    if (egl_library) |value| glfw_mod.addCMacro("_GLFW_EGL_LIBRARY", value);
+    if (glx_library) |value| glfw_mod.addCMacro("_GLFW_GLX_LIBRARY", value);
+    if (osmesa_library) |value| glfw_mod.addCMacro("_GLFW_OSMESA_LIBRARY", value);
+    if (opengl_library) |value| glfw_mod.addCMacro("_GLFW_OPENGL_LIBRARY", value);
+    if (glesv1_library) |value| glfw_mod.addCMacro("_GLFW_GLESV1_LIBRARY", value);
+    if (glesv2_library) |value| glfw_mod.addCMacro("_GLFW_GLESV2_LIBRARY", value);
 
-    if (use_hybrid_hpg) glfw.root_module.addCMacro("_GLFW_USE_HYBRID_HPG", "1");
+    if (use_hybrid_hpg) glfw_mod.addCMacro("_GLFW_USE_HYBRID_HPG", "1");
 
-    glfw.addCSourceFiles(.{
+    glfw_mod.addCSourceFiles(.{
         .root = glfw_upstream.path("src"),
         .files = &.{
             "context.c",
@@ -130,7 +124,7 @@ pub fn build(b: *std.Build) !void {
     });
 
     if (apple) {
-        glfw.addCSourceFiles(.{
+        glfw_mod.addCSourceFiles(.{
             .root = glfw_upstream.path("src"),
             .files = &.{
                 "cocoa_time.c",
@@ -140,7 +134,7 @@ pub fn build(b: *std.Build) !void {
             .flags = &flags,
         });
     } else if (windows) {
-        glfw.addCSourceFiles(.{
+        glfw_mod.addCSourceFiles(.{
             .root = glfw_upstream.path("src"),
             .files = &.{
                 "win32_module.c",
@@ -150,7 +144,7 @@ pub fn build(b: *std.Build) !void {
             .flags = &flags,
         });
     } else {
-        glfw.addCSourceFiles(.{
+        glfw_mod.addCSourceFiles(.{
             .root = glfw_upstream.path("src"),
             .files = &.{
                 "posix_module.c",
@@ -162,7 +156,7 @@ pub fn build(b: *std.Build) !void {
     }
 
     if (build_cocoa) {
-        glfw.addCSourceFiles(.{
+        glfw_mod.addCSourceFiles(.{
             .root = glfw_upstream.path("src"),
             .files = &.{
                 "cocoa_init.m",
@@ -176,7 +170,7 @@ pub fn build(b: *std.Build) !void {
     }
 
     if (build_win32) {
-        glfw.addCSourceFiles(.{
+        glfw_mod.addCSourceFiles(.{
             .root = glfw_upstream.path("src"),
             .files = &.{
                 "wgl_context.c",
@@ -190,7 +184,7 @@ pub fn build(b: *std.Build) !void {
     }
 
     if (build_x11) {
-        glfw.addCSourceFiles(.{
+        glfw_mod.addCSourceFiles(.{
             .root = glfw_upstream.path("src"),
             .files = &.{
                 "glx_context.c",
@@ -203,7 +197,7 @@ pub fn build(b: *std.Build) !void {
     }
 
     if (build_wayland) {
-        glfw.addCSourceFiles(.{
+        glfw_mod.addCSourceFiles(.{
             .root = glfw_upstream.path("src"),
             .files = &.{
                 "wl_init.c",
@@ -216,7 +210,7 @@ pub fn build(b: *std.Build) !void {
 
     if (build_x11 or build_wayland) {
         if (target.result.os.tag == .linux) {
-            glfw.addCSourceFiles(.{
+            glfw_mod.addCSourceFiles(.{
                 .root = glfw_upstream.path("src"),
                 .files = &.{
                     "linux_joystick.c",
@@ -225,7 +219,7 @@ pub fn build(b: *std.Build) !void {
             });
         }
 
-        glfw.addCSourceFiles(.{
+        glfw_mod.addCSourceFiles(.{
             .root = glfw_upstream.path("src"),
             .files = &.{
                 "posix_poll.c",
@@ -236,19 +230,19 @@ pub fn build(b: *std.Build) !void {
     }
 
     if (build_win32) {
-        glfw.linkSystemLibrary("gdi32");
+        glfw_mod.linkSystemLibrary("gdi32", .{});
     }
 
     if (build_cocoa) {
-        glfw.linkFramework("Cocoa");
-        glfw.linkFramework("IOKit");
-        glfw.linkFramework("CoreFoundation");
+        glfw_mod.linkFramework("Cocoa", .{});
+        glfw_mod.linkFramework("IOKit", .{});
+        glfw_mod.linkFramework("CoreFoundation", .{});
     }
 
     if (provide_headers) {
         if (build_wayland) {
             if (b.lazyDependency("wayland", .{})) |wayland_upstream| {
-                glfw.addSystemIncludePath(wayland_upstream.path("src"));
+                glfw_mod.addSystemIncludePath(wayland_upstream.path("src"));
                 const wayland_version_h = b.addConfigHeader(.{
                     .style = .{
                         .cmake = wayland_upstream.path("src/wayland-version.h.in"),
@@ -264,27 +258,27 @@ pub fn build(b: *std.Build) !void {
                         wayland_version.micro,
                     }),
                 });
-                glfw.addConfigHeader(wayland_version_h);
+                glfw_mod.addConfigHeader(wayland_version_h);
             }
 
             if (b.lazyDependency("xkbcommon", .{})) |xkbcommon_upstream| {
-                glfw.addSystemIncludePath(xkbcommon_upstream.path("include"));
+                glfw_mod.addSystemIncludePath(xkbcommon_upstream.path("include"));
             }
         }
 
         if (build_x11) {
             if (b.lazyDependency("libX11", .{})) |xlib_upstream| {
-                glfw.addSystemIncludePath(xlib_upstream.path("include"));
+                glfw_mod.addSystemIncludePath(xlib_upstream.path("include"));
             }
 
             if (b.lazyDependency("xorgproto", .{})) |xorgproto_upstream| {
-                glfw.addSystemIncludePath(xorgproto_upstream.path("include"));
+                glfw_mod.addSystemIncludePath(xorgproto_upstream.path("include"));
             }
 
             if (b.lazyDependency("libXcursor", .{})) |lib_x_cursor| {
                 const xcursor = b.addConfigHeader(.{
                     .style = .{
-                        .autoconf = lib_x_cursor.path("include/X11/Xcursor/Xcursor.h.in"),
+                        .autoconf_undef = lib_x_cursor.path("include/X11/Xcursor/Xcursor.h.in"),
                     },
                     .include_path = "X11/Xcursor/Xcursor.h",
                 }, .{
@@ -292,38 +286,47 @@ pub fn build(b: *std.Build) !void {
                     .XCURSOR_LIB_MINOR = libxcursor_version.minor,
                     .XCURSOR_LIB_REVISION = libxcursor_version.revision,
                 });
-                glfw.addConfigHeader(xcursor);
+                glfw_mod.addConfigHeader(xcursor);
             }
 
             if (b.lazyDependency("libXrandr", .{})) |xrandr_upstream| {
-                glfw.addSystemIncludePath(xrandr_upstream.path("include"));
+                glfw_mod.addSystemIncludePath(xrandr_upstream.path("include"));
             }
 
             if (b.lazyDependency("libXrender", .{})) |xrender_upstream| {
-                glfw.addSystemIncludePath(xrender_upstream.path("include"));
+                glfw_mod.addSystemIncludePath(xrender_upstream.path("include"));
             }
 
             if (b.lazyDependency("libXinerama", .{})) |xinerama_upstream| {
-                glfw.addSystemIncludePath(xinerama_upstream.path("include"));
+                glfw_mod.addSystemIncludePath(xinerama_upstream.path("include"));
             }
 
             if (b.lazyDependency("libXi", .{})) |xi_upstream| {
-                glfw.addSystemIncludePath(xi_upstream.path("include"));
+                glfw_mod.addSystemIncludePath(xi_upstream.path("include"));
             }
 
             if (b.lazyDependency("libXext", .{})) |xext_upstream| {
-                glfw.addSystemIncludePath(xext_upstream.path("include"));
+                glfw_mod.addSystemIncludePath(xext_upstream.path("include"));
             }
 
             if (b.lazyDependency("libXfixes", .{})) |xfixes_upstream| {
-                glfw.addSystemIncludePath(xfixes_upstream.path("include"));
+                glfw_mod.addSystemIncludePath(xfixes_upstream.path("include"));
             }
         }
     }
 
+    glfw_mod.addIncludePath(b.path("generated"));
+
+    const glfw = if (shared) b.addLibrary(.{
+        .name = "glfw3",
+        .root_module = glfw_mod,
+        .linkage = .dynamic,
+    }) else b.addLibrary(.{
+        .name = "glfw3",
+        .root_module = glfw_mod,
+        .linkage = .static,
+    });
+
     glfw.installHeadersDirectory(glfw_upstream.path("include/GLFW"), "GLFW", .{});
-
-    glfw.addIncludePath(b.path("generated"));
-
     b.installArtifact(glfw);
 }
